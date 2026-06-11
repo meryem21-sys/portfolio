@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pipeline Épidémiologique COVID-19 — R</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0c1a2e;--card:#14243a;--border:#1e3350;--teal:#00c4b4;--blue:#3b82f6;--green:#22d3a0;--amber:#f59e0b;--red:#f87171;--white:#e8f0fe;--gray1:#8ba3c0;--gray2:#4a6a8a;--r:10px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--white);font-size:13px;line-height:1.5;min-height:100vh}
+.db-header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.db-title{font-size:14px;font-weight:700}.db-subtitle{font-size:11px;color:var(--gray1);margin-top:1px}
+.pill{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(0,196,180,.12);color:var(--teal);border:1px solid rgba(0,196,180,.2)}
+.db-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--gray1)}
+.kpi-val{font-size:20px;font-weight:800;margin:4px 0 5px;line-height:1}
+.kpi-delta{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.ok{background:rgba(34,211,160,.1);color:var(--green);border:1px solid rgba(34,211,160,.2)}
+.info{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700}
+.card-body{padding:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray1);border-bottom:1px solid var(--border);background:rgba(26,45,70,.5)}
+tbody td{padding:8px 10px;border-bottom:1px solid rgba(30,51,80,.5)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,196,180,.04)}
+.chart-wrap{position:relative;height:170px}
+.pipeline-step{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(30,51,80,.5)}
+.pipeline-step:last-child{border-bottom:none}
+.step-num{width:26px;height:26px;border-radius:50%;background:rgba(0,196,180,.15);border:1px solid rgba(0,196,180,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--teal);flex-shrink:0}
+.step-name{font-size:12px;font-weight:600;color:var(--white)}
+.step-desc{font-size:11px;color:var(--gray1)}
+.step-tech{font-size:10px;color:var(--teal);margin-top:1px}
+.db-footer{padding:7px 20px;border-top:1px solid var(--border);text-align:right;font-size:10px;color:var(--gray2)}
+</style>
+</head>
+<body>
+<div class="db-header">
+  <div><div class="db-title">🦠 Pipeline Épidémiologique COVID-19</div><div class="db-subtitle">Pipeline reproductible end-to-end · Données open data · R / R Markdown</div></div>
+  <span class="pill">R · ggplot2 · dplyr · R Markdown</span>
+</div>
+<div class="db-body">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Pic hospitalisations</div><div class="kpi-val" style="color:var(--red)">32 478</div><span class="kpi-delta info">Avril 2021</span></div>
+    <div class="kpi"><div class="kpi-label">Indicateurs suivis</div><div class="kpi-val">6</div><span class="kpi-delta ok">Standardisés</span></div>
+    <div class="kpi"><div class="kpi-label">Pipeline automatisé</div><div class="kpi-val" style="color:var(--teal)">100%</div><span class="kpi-delta ok">Reproductible</span></div>
+    <div class="kpi"><div class="kpi-label">Format de sortie</div><div class="kpi-val" style="font-size:14px">HTML/PDF</div><span class="kpi-delta info">R Markdown</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-head">Hospitalisations et réanimations — Évolution (France)</div><div class="card-body"><div class="chart-wrap"><canvas id="cHosp"></canvas></div></div></div>
+    <div class="card"><div class="card-head">Pipeline — Étapes techniques</div><div class="card-body">
+      <div class="pipeline-step"><span class="step-num">1</span><div><div class="step-name">Ingestion</div><div class="step-desc">Chargement CSV depuis data.gouv.fr via URL</div><div class="step-tech">readr · httr</div></div></div>
+      <div class="pipeline-step"><span class="step-num">2</span><div><div class="step-name">Contrôle schéma</div><div class="step-desc">Validation colonnes, types, valeurs manquantes</div><div class="step-tech">dplyr · assertr</div></div></div>
+      <div class="pipeline-step"><span class="step-num">3</span><div><div class="step-name">Wrangling</div><div class="step-desc">Agrégation temporelle, lissage 7 jours, enrichissement</div><div class="step-tech">dplyr · lubridate</div></div></div>
+      <div class="pipeline-step"><span class="step-num">4</span><div><div class="step-name">Visualisations</div><div class="step-desc">Séries temporelles, cartes, tableaux synthétiques</div><div class="step-tech">ggplot2 · scales</div></div></div>
+      <div class="pipeline-step"><span class="step-num">5</span><div><div class="step-name">Rapport automatisé</div><div class="step-desc">Génération HTML/PDF paramétrable par date</div><div class="step-tech">R Markdown · knitr</div></div></div>
+    </div></div>
+  </div>
+  <div class="card"><div class="card-head">Indicateurs suivis — Définitions standardisées</div><div class="card-body">
+    <table><thead><tr><th>Indicateur</th><th>Définition</th><th>Source</th><th>Fréquence</th></tr></thead><tbody>
+      <tr><td>Nouvelles hospitalisations</td><td>Admissions nouvelles pour COVID-19 par département</td><td>data.gouv.fr / SPF</td><td>Quotidienne</td></tr>
+      <tr><td>Patients en réanimation</td><td>Patients en unité de soins critiques (stock)</td><td>data.gouv.fr / SPF</td><td>Quotidienne</td></tr>
+      <tr><td>Décès hospitaliers</td><td>Décès à l'hôpital attribués au COVID-19</td><td>data.gouv.fr / SPF</td><td>Quotidienne</td></tr>
+      <tr><td>Taux d'occupation réa.</td><td>Lits réa. COVID / capacité totale lits réa.</td><td>Calculé</td><td>Quotidienne</td></tr>
+    </tbody></table>
+  </div></div>
+</div>
+<div class="db-footer">Données open data SPF / data.gouv.fr · Portfolio Meryem Lachgar</div>
+<script>
+const cfg={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#8ba3c0',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'#1a2d46',borderColor:'#1e3350',borderWidth:1,titleColor:'#e8f0fe',bodyColor:'#8ba3c0'}},scales:{x:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:9},maxTicksLimit:8}},y:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}}}};
+const months=['Mar 20','Juin 20','Sep 20','Déc 20','Mar 21','Juin 21','Sep 21','Déc 21','Mar 22','Juin 22','Sep 22','Déc 22'];
+new Chart(document.getElementById('cHosp'),{type:'line',data:{labels:months,datasets:[{label:'Hospitalisations',data:[14800,5200,6800,26400,31200,9800,12400,18600,10200,5400,8200,4800],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#3b82f6'},{label:'Réanimations',data:[7100,1800,2200,7800,5600,1900,2800,3900,2200,1100,1600,800],borderColor:'#f87171',backgroundColor:'rgba(248,113,113,.08)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#f87171'}]},options:cfg});
+</script>
+</body>
+</html>

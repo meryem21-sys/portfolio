@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Application Contrôle — CACF QlikView</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0c1a2e;--card:#14243a;--card2:#1a2d46;--border:#1e3350;--teal:#00c4b4;--blue:#3b82f6;--green:#22d3a0;--amber:#f59e0b;--red:#f87171;--white:#e8f0fe;--gray1:#8ba3c0;--gray2:#4a6a8a;--r:10px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--white);font-size:13px;line-height:1.5;min-height:100vh}
+.db-header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.db-title{font-size:14px;font-weight:700}.db-subtitle{font-size:11px;color:var(--gray1);margin-top:1px}
+.pill{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(0,196,180,.12);color:var(--teal);border:1px solid rgba(0,196,180,.2)}
+.db-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gray1)}
+.kpi-val{font-size:22px;font-weight:800;margin:4px 0 6px;line-height:1}
+.kpi-delta{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.ok{background:rgba(34,211,160,.1);color:var(--green);border:1px solid rgba(34,211,160,.2)}
+.warn{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.ko{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.neutral{background:rgba(139,163,192,.1);color:var(--gray1);border:1px solid rgba(139,163,192,.2)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border)}
+.tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--gray1);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;transition:all .2s}
+.tab:hover{color:var(--white)}.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.panel{display:none}.panel.active{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray1);border-bottom:1px solid var(--border);background:rgba(26,45,70,.5)}
+tbody td{padding:8px 10px;border-bottom:1px solid rgba(30,51,80,.5)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,196,180,.04)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.dot-g{background:var(--green)}.dot-a{background:var(--amber)}.dot-r{background:var(--red)}
+.chart-wrap{position:relative;height:160px}
+.db-footer{padding:7px 20px;border-top:1px solid var(--border);text-align:right;font-size:10px;color:var(--gray2)}
+.ecart-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,51,80,.5)}
+.ecart-row:last-child{border-bottom:none}
+.ecart-name{font-size:12px;color:var(--white)}
+.ecart-val{font-size:13px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="db-header">
+  <div><div class="db-title">🔍 Application Contrôle — QlikView</div><div class="db-subtitle">Crédit Agricole Consumer Finance · Pôle Suivi d'Activité Commerce</div></div>
+  <span class="pill">QlikView · SAS · SQL · Datamart</span>
+</div>
+<div class="db-body">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Flux SI</div><div class="kpi-val" style="color:var(--green)">✓ OK</div><span class="kpi-delta ok">Traité 06:02</span></div>
+    <div class="kpi"><div class="kpi-label">Alimentation Datamart</div><div class="kpi-val" style="color:var(--green)">✓ OK</div><span class="kpi-delta ok">Complet</span></div>
+    <div class="kpi"><div class="kpi-label">Batchs SAS</div><div class="kpi-val" style="color:var(--amber)">9 / 12</div><span class="kpi-delta warn">3 en attente</span></div>
+    <div class="kpi"><div class="kpi-label">Anomalies J/J-1</div><div class="kpi-val" style="color:var(--red)">5</div><span class="kpi-delta ko">À analyser</span></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="controles">Contrôles</button>
+    <button class="tab" data-tab="ecarts">Écarts J/J-1</button>
+    <button class="tab" data-tab="batchs">Batchs SAS</button>
+    <button class="tab" data-tab="qualite">Qualité</button>
+  </div>
+  <div id="controles" class="panel active">
+    <div class="card"><div class="card-head">Contrôles automatisés — Résultats du jour</div><div class="card-body">
+      <table><thead><tr><th>Contrôle</th><th>Domaine</th><th>Valeur J</th><th>Valeur J-1</th><th>Seuil</th><th>Statut</th></tr></thead><tbody>
+        <tr><td>NB_CONTRATS_ACT</td><td>Commerce</td><td>48 234</td><td>47 981</td><td>±5%</td><td><span class="dot dot-g"></span><span class="kpi-delta ok">OK</span></td></tr>
+        <tr><td>ENCOURS_TOTAL</td><td>Finance</td><td>€ 2,14 Md</td><td>€ 2,13 Md</td><td>±2%</td><td><span class="dot dot-g"></span><span class="kpi-delta ok">OK</span></td></tr>
+        <tr><td>TX_DEFAUT_30J</td><td>Risque</td><td>3,82 %</td><td>3,65 %</td><td>±0,3pt</td><td><span class="dot dot-a"></span><span class="kpi-delta warn">⚠ Attention</span></td></tr>
+        <tr><td>NB_DOSSIERS_ENTRANTS</td><td>Commerce</td><td>1 247</td><td>1 389</td><td>±15%</td><td><span class="dot dot-r"></span><span class="kpi-delta ko">✗ Alerte</span></td></tr>
+        <tr><td>PROD_MENSUELLE</td><td>Finance</td><td>€ 42,1 M</td><td>€ 41,8 M</td><td>±5%</td><td><span class="dot dot-g"></span><span class="kpi-delta ok">OK</span></td></tr>
+        <tr><td>NB_REGULARISATIONS</td><td>Qualité</td><td>83</td><td>91</td><td>±20%</td><td><span class="dot dot-g"></span><span class="kpi-delta ok">OK</span></td></tr>
+      </tbody></table>
+    </div></div>
+  </div>
+  <div id="ecarts" class="panel">
+    <div class="grid2">
+      <div class="card"><div class="card-head">Évolution des anomalies (30 jours)</div><div class="card-body"><div class="chart-wrap"><canvas id="cEcarts"></canvas></div></div></div>
+      <div class="card"><div class="card-head">Anomalies à analyser — Détail</div><div class="card-body">
+        <div class="ecart-row"><span class="ecart-name"><span class="dot dot-r"></span>NB_DOSSIERS_ENTRANTS</span><span class="ecart-val" style="color:var(--red)">−11,4%</span></div>
+        <div class="ecart-row"><span class="ecart-name"><span class="dot dot-a"></span>TX_DEFAUT_30J</span><span class="ecart-val" style="color:var(--amber)">+0,17pt</span></div>
+        <div class="ecart-row"><span class="ecart-name"><span class="dot dot-a"></span>PROD_REG_SUD</span><span class="ecart-val" style="color:var(--amber)">−8,2%</span></div>
+        <div class="ecart-row"><span class="ecart-name"><span class="dot dot-a"></span>TX_ACCORD_AGENCES</span><span class="ecart-val" style="color:var(--amber)">−4,1pt</span></div>
+        <div class="ecart-row"><span class="ecart-name"><span class="dot dot-r"></span>FLUX_SI_REGION_3</span><span class="ecart-val" style="color:var(--red)">Non reçu</span></div>
+      </div></div>
+    </div>
+  </div>
+  <div id="batchs" class="panel">
+    <div class="card"><div class="card-head">Suivi des batchs SAS — Exécution du jour</div><div class="card-body">
+      <table><thead><tr><th>Batch</th><th>Heure démarrage</th><th>Durée</th><th>Lignes traitées</th><th>Statut</th></tr></thead><tbody>
+        <tr><td>BATCH_CONTRATS_MENS</td><td>04:00</td><td>12 min</td><td>48 234</td><td><span class="kpi-delta ok">✓ Terminé</span></td></tr>
+        <tr><td>BATCH_ENCOURS_REG</td><td>04:15</td><td>8 min</td><td>12 480</td><td><span class="kpi-delta ok">✓ Terminé</span></td></tr>
+        <tr><td>BATCH_RISQUE_SCORE</td><td>04:30</td><td>21 min</td><td>48 234</td><td><span class="kpi-delta ok">✓ Terminé</span></td></tr>
+        <tr><td>BATCH_PROD_AGENCES</td><td>05:00</td><td>—</td><td>—</td><td><span class="kpi-delta warn">⚠ En cours</span></td></tr>
+        <tr><td>BATCH_REJET_CTRL</td><td>05:30</td><td>—</td><td>—</td><td><span class="kpi-delta neutral">⏳ Attente</span></td></tr>
+        <tr><td>BATCH_DIFFUSION_TDB</td><td>06:00</td><td>—</td><td>—</td><td><span class="kpi-delta neutral">⏳ Attente</span></td></tr>
+      </tbody></table>
+    </div></div>
+  </div>
+  <div id="qualite" class="panel">
+    <div class="grid2">
+      <div class="card"><div class="card-head">Taux de complétion données — 30 jours</div><div class="card-body"><div class="chart-wrap"><canvas id="cQualite"></canvas></div></div></div>
+      <div class="card"><div class="card-head">Bilan qualité du mois</div><div class="card-body">
+        <table><thead><tr><th>Indicateur</th><th>Score</th><th>Cible</th></tr></thead><tbody>
+          <tr><td>Complétude données</td><td>99,2 %</td><td>99 %</td></tr>
+          <tr><td>Cohérence SI/Datamart</td><td>98,7 %</td><td>99 %</td></tr>
+          <tr><td>Délai de mise à dispo</td><td>06:18</td><td>07:00</td></tr>
+          <tr><td>Contrôles passés</td><td>94 / 100</td><td>95 / 100</td></tr>
+          <tr><td>Anomalies traitées (48h)</td><td>91 %</td><td>90 %</td></tr>
+        </tbody></table>
+      </div></div>
+    </div>
+  </div>
+</div>
+<div class="db-footer">Données anonymisées · Portfolio Meryem Lachgar</div>
+<script>
+const cfg={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2d46',borderColor:'#1e3350',borderWidth:1,titleColor:'#e8f0fe',bodyColor:'#8ba3c0'}},scales:{x:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}},y:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}}}};
+const labels30=[...Array(30)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.getDate()+'/'+(d.getMonth()+1)});
+new Chart(document.getElementById('cEcarts'),{type:'line',data:{labels:labels30,datasets:[{data:[2,3,1,4,2,5,3,2,1,3,4,2,6,3,2,4,1,3,5,2,3,4,2,5,3,4,3,5,4,5],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.08)',tension:.4,fill:true,pointRadius:2,pointBackgroundColor:'#f59e0b'}]},options:cfg});
+new Chart(document.getElementById('cQualite'),{type:'line',data:{labels:labels30,datasets:[{data:[99.1,99.3,99.0,99.4,99.2,98.9,99.5,99.3,99.1,99.4,99.2,99.0,99.6,99.3,99.1,99.4,99.2,98.8,99.3,99.5,99.2,99.4,99.1,99.3,99.0,99.4,99.2,99.1,99.3,99.2],borderColor:'#00c4b4',backgroundColor:'rgba(0,196,180,.08)',tension:.4,fill:true,pointRadius:2,pointBackgroundColor:'#00c4b4'}]},options:{...cfg,scales:{x:cfg.scales.x,y:{...cfg.scales.y,min:98,max:100,ticks:{...cfg.scales.y.ticks,callback:v=>v+'%'}}}}});
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab,.panel').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById(t.dataset.tab).classList.add('active')}));
+</script>
+</body>
+</html>

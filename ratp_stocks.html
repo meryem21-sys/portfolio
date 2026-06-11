@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard BI Logistique — RATP</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0c1a2e;--card:#14243a;--card2:#1a2d46;--border:#1e3350;--teal:#00c4b4;--blue:#3b82f6;--green:#22d3a0;--amber:#f59e0b;--red:#f87171;--white:#e8f0fe;--gray1:#8ba3c0;--gray2:#4a6a8a;--r:10px;--t:all .2s ease}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--white);font-size:13px;line-height:1.5;min-height:100vh}
+.db-header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.db-title{font-size:14px;font-weight:700}
+.db-subtitle{font-size:11px;color:var(--gray1);margin-top:1px}
+.db-meta{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:4px}
+.pill{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(0,196,180,.12);color:var(--teal);border:1px solid rgba(0,196,180,.2)}
+.db-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gray1)}
+.kpi-val{font-size:22px;font-weight:800;color:var(--white);margin:4px 0 6px;line-height:1}
+.kpi-delta{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.up{background:rgba(34,211,160,.1);color:var(--green);border:1px solid rgba(34,211,160,.2)}
+.down{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.neutral{background:rgba(139,163,192,.1);color:var(--gray1);border:1px solid rgba(139,163,192,.2)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border)}
+.tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--gray1);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;transition:var(--t)}
+.tab:hover{color:var(--white)}.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.panel{display:none}.panel.active{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700}
+.card-body{padding:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray1);border-bottom:1px solid var(--border);background:rgba(26,45,70,.5)}
+tbody td{padding:8px 10px;border-bottom:1px solid rgba(30,51,80,.5)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,196,180,.04)}
+.badge-ok{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(34,211,160,.1);color:var(--green);border:1px solid rgba(34,211,160,.2)}
+.badge-warn{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2);display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-red{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.chart-wrap{position:relative;height:160px}.chart-wrap-sm{position:relative;height:140px}
+.db-footer{padding:7px 20px;border-top:1px solid var(--border);text-align:right;font-size:10px;color:var(--gray2)}
+</style>
+</head>
+<body>
+<div class="db-header">
+  <div><div class="db-title">📊 Dashboard BI — Pilotage Logistique</div><div class="db-subtitle">RATP · CSP LOG · Direction Stratégie, Finance & Performance Durable</div></div>
+  <div class="db-meta"><span style="font-size:11px;color:var(--gray1)"><span class="status-dot"></span>Refresh : 01/06/2025 06:15</span><span class="pill">Power BI · Talend · Oracle SQL</span></div>
+</div>
+<div class="db-body">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Valeur de stock</div><div class="kpi-val">€ 98,3 M</div><span class="kpi-delta up">↑ +3,2% vs M-1</span></div>
+    <div class="kpi"><div class="kpi-label">Stock dormant</div><div class="kpi-val">3,8 %</div><span class="kpi-delta up">↓ −0,4 pt</span></div>
+    <div class="kpi"><div class="kpi-label">Couverture moy.</div><div class="kpi-val">7,2 sem.</div><span class="kpi-delta neutral">= stable</span></div>
+    <div class="kpi"><div class="kpi-label">Taux service fourn.</div><div class="kpi-val">95,6 %</div><span class="kpi-delta up">↑ +1,1 pt</span></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="stocks">Stocks</button>
+    <button class="tab" data-tab="commandes">Commandes</button>
+    <button class="tab" data-tab="fournisseurs">Fournisseurs</button>
+    <button class="tab" data-tab="rh">RH</button>
+  </div>
+  <div id="stocks" class="panel active">
+    <div class="grid2">
+      <div class="card"><div class="card-head">Évolution valeur de stock — 12 mois</div><div class="card-body"><div class="chart-wrap"><canvas id="cStock"></canvas></div></div></div>
+      <div class="card"><div class="card-head">Répartition par périmètre (Top 5)</div><div class="card-body"><div class="chart-wrap"><canvas id="cPerim"></canvas></div></div></div>
+    </div>
+  </div>
+  <div id="commandes" class="panel">
+    <div class="grid2">
+      <div class="card"><div class="card-head">Entrées vs Sorties — 6 mois</div><div class="card-body"><div class="chart-wrap"><canvas id="cCmd"></canvas></div></div></div>
+      <div class="card"><div class="card-head">Délais & respect fournisseurs</div><div class="card-body">
+        <table><thead><tr><th>Fournisseur</th><th>Délai moy.</th><th>Respect</th><th>Statut</th></tr></thead><tbody>
+          <tr><td>FOURN_A</td><td>2,1 j</td><td>96 %</td><td><span class="badge-ok">✓ OK</span></td></tr>
+          <tr><td>FOURN_B</td><td>3,4 j</td><td>88 %</td><td><span class="badge-warn">⚠ Attention</span></td></tr>
+          <tr><td>FOURN_C</td><td>1,6 j</td><td>98 %</td><td><span class="badge-ok">✓ OK</span></td></tr>
+          <tr><td>FOURN_D</td><td>4,8 j</td><td>79 %</td><td><span class="badge-red">✗ Alerte</span></td></tr>
+          <tr><td>FOURN_E</td><td>2,9 j</td><td>91 %</td><td><span class="badge-ok">✓ OK</span></td></tr>
+        </tbody></table>
+      </div></div>
+    </div>
+  </div>
+  <div id="fournisseurs" class="panel">
+    <div class="grid2">
+      <div class="card"><div class="card-head">Score qualité fournisseur (délais + conformité)</div><div class="card-body"><div class="chart-wrap-sm"><canvas id="cFourn"></canvas></div></div></div>
+      <div class="card"><div class="card-head">Couverture de stock par famille</div><div class="card-body">
+        <table><thead><tr><th>Famille</th><th>Couv.</th><th>Cible</th><th>Écart</th></tr></thead><tbody>
+          <tr><td>FAM_01 — Mécan.</td><td>8,2 sem.</td><td>8 sem.</td><td><span class="badge-ok">+0,2</span></td></tr>
+          <tr><td>FAM_02 — Électro.</td><td>5,1 sem.</td><td>6 sem.</td><td><span class="badge-warn">−0,9</span></td></tr>
+          <tr><td>FAM_03 — Conso.</td><td>11,4 sem.</td><td>9 sem.</td><td><span class="badge-warn">+2,4</span></td></tr>
+          <tr><td>FAM_04 — Sécu.</td><td>7,8 sem.</td><td>8 sem.</td><td><span class="badge-ok">−0,2</span></td></tr>
+        </tbody></table>
+      </div></div>
+    </div>
+  </div>
+  <div id="rh" class="panel">
+    <div class="card"><div class="card-head">RH Logistique — Agrégats par site</div><div class="card-body">
+      <table><thead><tr><th>Site</th><th>Effectif</th><th>Polyvalence</th><th>Formations (12 m.)</th><th>Taux présence</th></tr></thead><tbody>
+        <tr><td>SITE_IDF_A</td><td>42</td><td>3,1 / 5</td><td>12</td><td>94 %</td></tr>
+        <tr><td>SITE_IDF_B</td><td>28</td><td>2,7 / 5</td><td>8</td><td>91 %</td></tr>
+        <tr><td>SITE_IDF_C</td><td>36</td><td>3,4 / 5</td><td>10</td><td>96 %</td></tr>
+        <tr><td>SITE_REG_D</td><td>19</td><td>3,8 / 5</td><td>6</td><td>97 %</td></tr>
+      </tbody></table>
+    </div></div>
+  </div>
+</div>
+<div class="db-footer">Données anonymisées · Portfolio Meryem Lachgar</div>
+<script>
+const C='#00c4b4',B='#3b82f6';
+const cfg={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2d46',borderColor:'#1e3350',borderWidth:1,titleColor:'#e8f0fe',bodyColor:'#8ba3c0'}},scales:{x:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}},y:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}}}};
+new Chart(document.getElementById('cStock'),{type:'line',data:{labels:['Juin','Juil','Août','Sep','Oct','Nov','Déc','Jan','Fév','Mar','Avr','Mai'],datasets:[{data:[88.2,90.1,87.4,92.3,94.8,91.2,89.7,93.4,95.1,96.8,97.5,98.3],borderColor:C,backgroundColor:'rgba(0,196,180,.08)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:C}]},options:{...cfg,scales:{x:cfg.scales.x,y:{...cfg.scales.y,ticks:{...cfg.scales.y.ticks,callback:v=>v+'M€'}}}}});
+new Chart(document.getElementById('cPerim'),{type:'bar',data:{labels:['PERI_A','PERI_B','PERI_C','PERI_D','PERI_E'],datasets:[{data:[32.1,24.8,18.6,13.2,9.6],backgroundColor:[C,B,'rgba(0,196,180,.5)','rgba(59,130,246,.5)','rgba(139,163,192,.3)'],borderRadius:4}]},options:{...cfg,indexAxis:'y',scales:{x:{...cfg.scales.x,ticks:{...cfg.scales.x.ticks,callback:v=>v+'M€'}},y:cfg.scales.y}}});
+new Chart(document.getElementById('cCmd'),{type:'bar',data:{labels:['Déc','Jan','Fév','Mar','Avr','Mai'],datasets:[{label:'Entrées',data:[1240,1380,1190,1450,1320,1510],backgroundColor:'rgba(0,196,180,.7)',borderRadius:3},{label:'Sorties',data:[1180,1290,1240,1380,1290,1440],backgroundColor:'rgba(59,130,246,.6)',borderRadius:3}]},options:{...cfg,plugins:{...cfg.plugins,legend:{display:true,labels:{color:'#8ba3c0',font:{size:10}}}}}});
+const scores=[84,73,91,67,88];
+new Chart(document.getElementById('cFourn'),{type:'bar',data:{labels:['FOURN_A','FOURN_B','FOURN_C','FOURN_D','FOURN_E'],datasets:[{data:scores,backgroundColor:scores.map(v=>v>=90?'rgba(34,211,160,.7)':v>=80?'rgba(245,158,11,.7)':'rgba(248,113,113,.7)'),borderRadius:4}]},options:{...cfg,scales:{x:cfg.scales.x,y:{...cfg.scales.y,min:0,max:100,ticks:{...cfg.scales.y.ticks,callback:v=>v+'/100'}}}}});
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab,.panel').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById(t.dataset.tab).classList.add('active')}));
+</script>
+</body>
+</html>

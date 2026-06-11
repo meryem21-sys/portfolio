@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Analyse Dépenses de Santé — Python</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0c1a2e;--card:#14243a;--border:#1e3350;--teal:#00c4b4;--blue:#3b82f6;--green:#22d3a0;--amber:#f59e0b;--red:#f87171;--white:#e8f0fe;--gray1:#8ba3c0;--gray2:#4a6a8a;--r:10px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--white);font-size:13px;line-height:1.5;min-height:100vh}
+.db-header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.db-title{font-size:14px;font-weight:700}.db-subtitle{font-size:11px;color:var(--gray1);margin-top:1px}
+.pill{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(0,196,180,.12);color:var(--teal);border:1px solid rgba(0,196,180,.2)}
+.db-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--gray1)}
+.kpi-val{font-size:20px;font-weight:800;margin:4px 0 5px;line-height:1}
+.kpi-delta{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.ok{background:rgba(34,211,160,.1);color:var(--green);border:1px solid rgba(34,211,160,.2)}
+.warn{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.info{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700}
+.card-body{padding:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray1);border-bottom:1px solid var(--border);background:rgba(26,45,70,.5)}
+tbody td{padding:8px 10px;border-bottom:1px solid rgba(30,51,80,.5)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,196,180,.04)}
+.chart-wrap{position:relative;height:160px}
+.corr-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(30,51,80,.5)}
+.corr-row:last-child{border-bottom:none}
+.corr-name{font-size:11px;color:var(--white);flex:1}
+.corr-bar-wrap{width:100px;height:8px;background:rgba(30,51,80,.8);border-radius:4px;overflow:hidden;flex-shrink:0}
+.corr-bar{height:100%;border-radius:4px}
+.corr-val{font-size:11px;font-weight:700;width:36px;text-align:right;flex-shrink:0}
+.db-footer{padding:7px 20px;border-top:1px solid var(--border);text-align:right;font-size:10px;color:var(--gray2)}
+</style>
+</head>
+<body>
+<div class="db-header">
+  <div><div class="db-title">🏥 Analyse Dépenses de Santé — Assurance Maladie</div><div class="db-subtitle">Simulation mission · Département du Nord · Données open data 2019</div></div>
+  <span class="pill">Python · pandas · matplotlib · seaborn</span>
+</div>
+<div class="db-body">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Indicateurs analysés</div><div class="kpi-val" style="color:var(--teal)">150+</div><span class="kpi-delta info">Multi-sources</span></div>
+    <div class="kpi"><div class="kpi-label">Dépenses totales Nord</div><div class="kpi-val">€ 9,2 Md</div><span class="kpi-delta warn">+4,1% vs national</span></div>
+    <div class="kpi"><div class="kpi-label">Pathologie n°1</div><div class="kpi-val" style="font-size:14px">Maladies CV</div><span class="kpi-delta ok">28% des dépenses</span></div>
+    <div class="kpi"><div class="kpi-label">Corrélation précarité</div><div class="kpi-val">r = 0,72</div><span class="kpi-delta ok">Significative</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-head">Répartition des dépenses par grande pathologie</div><div class="card-body"><div class="chart-wrap"><canvas id="cPath"></canvas></div></div></div>
+    <div class="card"><div class="card-head">Corrélations significatives identifiées</div><div class="card-body">
+      <div class="corr-row"><span class="corr-name">Précarité socio-éco → Diabète</span><div class="corr-bar-wrap"><div class="corr-bar" style="width:78%;background:#f59e0b"></div></div><span class="corr-val" style="color:var(--amber)">0,78</span></div>
+      <div class="corr-row"><span class="corr-name">Âge médian → Maladies CV</span><div class="corr-bar-wrap"><div class="corr-bar" style="width:72%;background:#00c4b4"></div></div><span class="corr-val" style="color:var(--teal)">0,72</span></div>
+      <div class="corr-row"><span class="corr-name">Densité méd. → Prévention</span><div class="corr-bar-wrap"><div class="corr-bar" style="width:65%;background:#3b82f6"></div></div><span class="corr-val" style="color:var(--blue)">0,65</span></div>
+      <div class="corr-row"><span class="corr-name">Précarité → Hospitalisations</span><div class="corr-bar-wrap"><div class="corr-bar" style="width:61%;background:#f59e0b"></div></div><span class="corr-val" style="color:var(--amber)">0,61</span></div>
+      <div class="corr-row"><span class="corr-name">Chômage → Santé mentale</span><div class="corr-bar-wrap"><div class="corr-bar" style="width:58%;background:#f87171"></div></div><span class="corr-val" style="color:var(--red)">0,58</span></div>
+    </div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-head">Évolution dépenses annuelles (2015–2019)</div><div class="card-body"><div class="chart-wrap"><canvas id="cEvol"></canvas></div></div></div>
+    <div class="card"><div class="card-head">Top 8 — Pathologies par coût moyen par patient</div><div class="card-body">
+      <table><thead><tr><th>Pathologie</th><th>Coût moy./patient</th><th>Prévalence</th><th>Tendance</th></tr></thead><tbody>
+        <tr><td>Maladies cardiovasc.</td><td>€ 4 820</td><td>12,4%</td><td style="color:var(--red)">↑ +2,3%</td></tr>
+        <tr><td>Diabète type 2</td><td>€ 3 640</td><td>8,7%</td><td style="color:var(--red)">↑ +3,8%</td></tr>
+        <tr><td>Cancers</td><td>€ 12 100</td><td>3,2%</td><td style="color:var(--amber)">→ +0,8%</td></tr>
+        <tr><td>Maladies resp. chron.</td><td>€ 2 180</td><td>9,1%</td><td style="color:var(--red)">↑ +1,9%</td></tr>
+        <tr><td>Troubles psy.</td><td>€ 3 290</td><td>6,8%</td><td style="color:var(--red)">↑ +4,2%</td></tr>
+        <tr><td>Maladies neurol.</td><td>€ 5 640</td><td>2,9%</td><td style="color:var(--amber)">→ +1,1%</td></tr>
+      </tbody></table>
+    </div></div>
+  </div>
+</div>
+<div class="db-footer">Données open data Assurance Maladie · Portfolio Meryem Lachgar</div>
+<script>
+const cfg={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2d46',borderColor:'#1e3350',borderWidth:1,titleColor:'#e8f0fe',bodyColor:'#8ba3c0'}},scales:{x:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}},y:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}}}};
+new Chart(document.getElementById('cPath'),{type:'doughnut',data:{labels:['Maladies CV','Diabète','Cancers','Resp. chron.','Psy.','Neurol.','Autres'],datasets:[{data:[28,18,14,12,10,8,10],backgroundColor:['#00c4b4','#3b82f6','#f59e0b','#22d3a0','#f87171','#a78bfa','rgba(139,163,192,.4)'],borderWidth:2,borderColor:'#0c1a2e'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:'#8ba3c0',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'#1a2d46',borderColor:'#1e3350',borderWidth:1,titleColor:'#e8f0fe',bodyColor:'#8ba3c0',callbacks:{label:ctx=>ctx.label+': '+ctx.parsed+'%'}}}}});
+new Chart(document.getElementById('cEvol'),{type:'line',data:{labels:['2015','2016','2017','2018','2019'],datasets:[{label:'Nord',data:[8.1,8.4,8.6,8.9,9.2],borderColor:'#00c4b4',backgroundColor:'rgba(0,196,180,.1)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#00c4b4'},{label:'National (base 100)',data:[7.8,8.0,8.2,8.5,8.8],borderColor:'rgba(59,130,246,.6)',backgroundColor:'transparent',tension:.4,pointRadius:3,pointBackgroundColor:'#3b82f6',borderDash:[4,3]}]},options:{...cfg,plugins:{...cfg.plugins,legend:{display:true,labels:{color:'#8ba3c0',font:{size:10},boxWidth:10}}},scales:{x:cfg.scales.x,y:{...cfg.scales.y,ticks:{...cfg.scales.y.ticks,callback:v=>v+' Md€'}}}}});
+</script>
+</body>
+</html>

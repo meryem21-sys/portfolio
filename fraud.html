@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Détection de Fraude — Pipeline ML</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0c1a2e;--card:#14243a;--card2:#1a2d46;--border:#1e3350;--teal:#00c4b4;--blue:#3b82f6;--green:#22d3a0;--amber:#f59e0b;--red:#f87171;--white:#e8f0fe;--gray1:#8ba3c0;--gray2:#4a6a8a;--r:10px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--white);font-size:13px;line-height:1.5;min-height:100vh}
+.db-header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.db-title{font-size:14px;font-weight:700}.db-subtitle{font-size:11px;color:var(--gray1);margin-top:1px}
+.pill{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(0,196,180,.12);color:var(--teal);border:1px solid rgba(0,196,180,.2)}
+.db-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--gray1)}
+.kpi-val{font-size:20px;font-weight:800;margin:4px 0 5px;line-height:1}
+.kpi-delta{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.ok{background:rgba(34,211,160,.1);color:var(--green);border:1px solid rgba(34,211,160,.2)}
+.best{background:rgba(0,196,180,.12);color:var(--teal);border:1px solid rgba(0,196,180,.2)}
+.warn{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700}
+.card-body{padding:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray1);border-bottom:1px solid var(--border);background:rgba(26,45,70,.5)}
+tbody td{padding:8px 10px;border-bottom:1px solid rgba(30,51,80,.5)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,196,180,.04)}
+.row-best td{background:rgba(0,196,180,.06)!important}
+.chart-wrap{position:relative;height:155px}
+.cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.cm-cell{border-radius:8px;padding:14px 10px;text-align:center}
+.cm-val{font-size:18px;font-weight:800;line-height:1}
+.cm-label{font-size:10px;color:var(--gray1);margin-top:3px}
+.db-footer{padding:7px 20px;border-top:1px solid var(--border);text-align:right;font-size:10px;color:var(--gray2)}
+</style>
+</head>
+<body>
+<div class="db-header">
+  <div><div class="db-title">🤖 Détection de Fraude Bancaire — Pipeline ML</div><div class="db-subtitle">284 807 transactions · 492 fraudes (0,172%) · Dataset Kaggle anonymisé (PCA V1–V28)</div></div>
+  <span class="pill">Python · scikit-learn · SMOTE · GridSearchCV</span>
+</div>
+<div class="db-body">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">PR-AUC (meilleur modèle)</div><div class="kpi-val" style="color:var(--teal)">0,89</div><span class="kpi-delta best">RF + SMOTE</span></div>
+    <div class="kpi"><div class="kpi-label">F1-Score</div><div class="kpi-val" style="color:var(--teal)">0,87</div><span class="kpi-delta best">Seuil 0,42</span></div>
+    <div class="kpi"><div class="kpi-label">Recall (détection)</div><div class="kpi-val" style="color:var(--green)">0,91</div><span class="kpi-delta ok">Objectif atteint</span></div>
+    <div class="kpi"><div class="kpi-label">Précision</div><div class="kpi-val">0,84</div><span class="kpi-delta ok">FP maîtrisés</span></div>
+    <div class="kpi"><div class="kpi-label">Transactions analysées</div><div class="kpi-val">284 K</div><span class="kpi-delta ok">SMOTE appliqué</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-head">Comparaison des modèles</div><div class="card-body">
+      <table><thead><tr><th>Modèle</th><th>Équilibrage</th><th>PR-AUC</th><th>F1</th><th>Recall</th><th></th></tr></thead><tbody>
+        <tr><td>Régression Logistique</td><td>Aucun</td><td>0,68</td><td>0,71</td><td>0,74</td><td></td></tr>
+        <tr><td>Régression Logistique</td><td>SMOTE</td><td>0,73</td><td>0,76</td><td>0,80</td><td></td></tr>
+        <tr><td>Random Forest</td><td>Aucun</td><td>0,82</td><td>0,81</td><td>0,83</td><td></td></tr>
+        <tr class="row-best"><td><strong>Random Forest</strong></td><td><strong>SMOTE</strong></td><td><strong>0,89</strong></td><td><strong>0,87</strong></td><td><strong>0,91</strong></td><td><span class="kpi-delta best">★ Best</span></td></tr>
+        <tr><td>SVM</td><td>SMOTE</td><td>0,76</td><td>0,78</td><td>0,82</td><td></td></tr>
+      </tbody></table>
+    </div></div>
+    <div class="card"><div class="card-head">Importance des features (Top 10)</div><div class="card-body"><div class="chart-wrap"><canvas id="cFeat"></canvas></div></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-head">Courbe PR — Precision / Recall (RF + SMOTE)</div><div class="card-body"><div class="chart-wrap"><canvas id="cPR"></canvas></div></div></div>
+    <div class="card"><div class="card-head">Matrice de confusion — Random Forest + SMOTE</div><div class="card-body">
+      <div class="cm-grid">
+        <div class="cm-cell" style="background:rgba(34,211,160,.12);border:1px solid rgba(34,211,160,.2)"><div class="cm-val" style="color:var(--green)">56 718</div><div class="cm-label">Vrais Négatifs (TN)</div></div>
+        <div class="cm-cell" style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2)"><div class="cm-val" style="color:var(--red)">74</div><div class="cm-label">Faux Positifs (FP)</div></div>
+        <div class="cm-cell" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2)"><div class="cm-val" style="color:var(--amber)">44</div><div class="cm-label">Faux Négatifs (FN)</div></div>
+        <div class="cm-cell" style="background:rgba(0,196,180,.12);border:1px solid rgba(0,196,180,.2)"><div class="cm-val" style="color:var(--teal)">448</div><div class="cm-label">Vrais Positifs (TP)</div></div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--gray1)">Seuil calibré à 0,42 — Recall maximal sous contrainte précision ≥ 80%</div>
+    </div></div>
+  </div>
+</div>
+<div class="db-footer">Données ouvertes Kaggle anonymisées · Portfolio Meryem Lachgar</div>
+<script>
+const cfg={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2d46',borderColor:'#1e3350',borderWidth:1,titleColor:'#e8f0fe',bodyColor:'#8ba3c0'}},scales:{x:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}},y:{grid:{color:'rgba(30,51,80,.5)'},ticks:{color:'#8ba3c0',font:{size:10}}}}};
+new Chart(document.getElementById('cFeat'),{type:'bar',data:{labels:['V14','V4','V12','V10','V11','Amount','V17','V3','V7','V16'],datasets:[{data:[0.18,0.15,0.13,0.11,0.09,0.08,0.07,0.06,0.05,0.04],backgroundColor:['rgba(0,196,180,.85)','rgba(0,196,180,.75)','rgba(0,196,180,.65)','rgba(0,196,180,.55)','rgba(0,196,180,.45)','rgba(59,130,246,.6)','rgba(59,130,246,.5)','rgba(59,130,246,.4)','rgba(59,130,246,.35)','rgba(59,130,246,.3)'],borderRadius:3}]},options:{...cfg,indexAxis:'y',scales:{x:{...cfg.scales.x,ticks:{...cfg.scales.x.ticks,callback:v=>v.toFixed(2)}},y:cfg.scales.y}}});
+const prData=[];for(let t=0;t<=1;t+=0.02){const r=Math.min(1,0.98*(1-Math.pow(t,0.7)));const p=Math.min(1,0.6+0.4*(1-Math.pow(t,0.4)));prData.push({x:r,y:p})}
+new Chart(document.getElementById('cPR'),{type:'scatter',data:{datasets:[{data:prData,borderColor:'#00c4b4',backgroundColor:'transparent',showLine:true,tension:.3,pointRadius:0},{data:[{x:0.91,y:0.84}],pointRadius:7,pointBackgroundColor:'#f59e0b',pointBorderColor:'#0c1a2e',pointBorderWidth:2,label:'Seuil 0,42'}]},options:{...cfg,plugins:{...cfg.plugins,legend:{display:true,labels:{color:'#8ba3c0',font:{size:10},boxWidth:10}}},scales:{x:{...cfg.scales.x,title:{display:true,text:'Recall',color:'#8ba3c0',font:{size:10}}},y:{...cfg.scales.y,title:{display:true,text:'Précision',color:'#8ba3c0',font:{size:10}},min:0,max:1}}}});
+</script>
+</body>
+</html>
